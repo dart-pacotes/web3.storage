@@ -1,5 +1,5 @@
 name: web3_storage
-description: A new Flutter package project.
+description: Port of web3.storage SDK in Dart
 version: 0.0.0
 homepage: https://github.com/dart-pacotes/web3.storage
 repository: https://github.com/dart-pacotes/web3.storage
