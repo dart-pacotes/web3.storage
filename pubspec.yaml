@@ -7,5 +7,8 @@ repository: https://github.com/dart-pacotes/web3.storage
 environment:
   sdk: ">=2.17.6 <3.0.0"
 
+dependencies:
+  networking: ^0.0.4
+
 dev_dependencies:
   flutter_lints: ^2.0.0
