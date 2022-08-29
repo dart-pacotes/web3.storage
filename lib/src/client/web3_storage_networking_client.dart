@@ -7,12 +7,15 @@ const _kUploadEndpoint = '/upload';
 
 const _kFileNameHeader = 'X-NAME';
 
+///
+/// A networking client to interact with Web3.Storage HTTP API
+///
 class Web3StorageNetworkingClient extends NetworkingClient {
-  final String apiKey;
+  final String apiToken;
 
   Web3StorageNetworkingClient({
     required Client httpClient,
-    required this.apiKey,
+    required this.apiToken,
   }) : super(
           baseUrl: Uri.parse('https://api.web3.storage'),
           httpClient: httpClient,
@@ -42,7 +45,7 @@ class Web3StorageNetworkingClient extends NetworkingClient {
       request: request.copyWith(
         headers: {
           ...request.headers,
-          'Authorization': 'Bearer $apiKey',
+          'Authorization': 'Bearer $apiToken',
         },
       ),
     );

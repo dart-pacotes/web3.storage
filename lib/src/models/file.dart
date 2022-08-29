@@ -2,8 +2,12 @@ import 'dart:typed_data';
 
 import 'package:web3_storage/web3_storage.dart';
 
+// A fast and free gateway to access IPFS files via HTTP, offered by Web3.Storage
 final _w3linkBaseUri = Uri.parse('https://w3s.link/ipfs/');
 
+///
+/// Models the needed information to represent a file in Web3.Storage.
+///
 class Web3File extends FileReference {
   final CID cid;
 
@@ -34,6 +38,9 @@ class Web3File extends FileReference {
   }
 }
 
+///
+/// Models the information needed to reference a file
+///
 class FileReference {
   final String name;
 
