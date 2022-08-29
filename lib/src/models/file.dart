@@ -5,7 +5,7 @@ import 'package:web3_storage/web3_storage.dart';
 class Web3File extends FileReference {
   final CID cid;
 
-  static FileReference fromReference({
+  static Web3File fromReference({
     required final CID cid,
     required final FileReference reference,
   }) {
@@ -23,6 +23,11 @@ class Web3File extends FileReference {
     required super.extension,
     required super.name,
   });
+
+  @override
+  String toString() {
+    return '$runtimeType(filename: $pathName, size: $size, cid: $cid)';
+  }
 }
 
 class FileReference {
@@ -41,4 +46,9 @@ class FileReference {
     required this.extension,
     required this.data,
   });
+
+  @override
+  String toString() {
+    return '$runtimeType(filename: $pathName, size: $size)';
+  }
 }
