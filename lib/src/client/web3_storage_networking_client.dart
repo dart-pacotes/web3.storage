@@ -33,12 +33,10 @@ class Web3StorageNetworkingClient extends NetworkingClient {
   }) {
     return super.send(
       request: request.copyWith(
-        headers: request.headers
-          ..addAll(
-            {
-              'Authorization': 'Bearer $apiKey',
-            },
-          ),
+        headers: {
+          ...request.headers,
+          'Authorization': 'Bearer $apiKey',
+        },
       ),
     );
   }
