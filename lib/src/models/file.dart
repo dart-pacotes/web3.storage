@@ -5,6 +5,18 @@ import 'package:web3_storage/web3_storage.dart';
 class Web3File extends FileReference {
   final CID cid;
 
+  static FileReference fromReference({
+    required final CID cid,
+    required final FileReference reference,
+  }) {
+    return Web3File(
+      cid: cid,
+      data: reference.data,
+      extension: reference.extension,
+      name: reference.name,
+    );
+  }
+
   const Web3File({
     required this.cid,
     required super.data,
