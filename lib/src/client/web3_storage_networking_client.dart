@@ -5,6 +5,8 @@ import 'package:web3_storage/web3_storage.dart';
 
 const _kUploadEndpoint = '/upload';
 
+const _kFileNameHeader = 'X-NAME';
+
 class Web3StorageNetworkingClient extends NetworkingClient {
   final String apiKey;
 
@@ -19,10 +21,15 @@ class Web3StorageNetworkingClient extends NetworkingClient {
   Future<Either<RequestError, Response>> upload({
     required final FileReference file,
   }) {
+    final fileName = file.fileName;
+
     return multipart(
       endpoint: _kUploadEndpoint,
       files: {
-        file.pathName: file.data,
+        fileName: file.data,
+      },
+      headers: {
+        _kFileNameHeader: fileName,
       },
     );
   }

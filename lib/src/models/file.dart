@@ -26,7 +26,7 @@ class Web3File extends FileReference {
 
   @override
   String toString() {
-    return '$runtimeType(filename: $pathName, size: $size, cid: $cid)';
+    return '$runtimeType(filename: $fileName, size: $size, cid: $cid)';
   }
 }
 
@@ -39,7 +39,7 @@ class FileReference {
 
   int get size => data.lengthInBytes;
 
-  String get pathName => '$name.$extension';
+  String get fileName => '$name.$extension';
 
   const FileReference({
     required this.name,
@@ -49,6 +49,6 @@ class FileReference {
 
   @override
   String toString() {
-    return '$runtimeType(filename: $pathName, size: $size)';
+    return '$runtimeType(filename: $fileName, size: $size)';
   }
 }
