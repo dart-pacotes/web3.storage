@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:web3_storage/web3_storage.dart';
 
+final _w3linkBaseUri = Uri.parse('https://w3s.link/ipfs/');
+
 class Web3File extends FileReference {
   final CID cid;
 
@@ -24,9 +26,11 @@ class Web3File extends FileReference {
     required super.name,
   });
 
+  Uri get url => _w3linkBaseUri.resolve(cid);
+
   @override
   String toString() {
-    return '$runtimeType(filename: $fileName, size: $size, cid: $cid)';
+    return '$runtimeType(filename: $fileName, size: $size, url: $url)';
   }
 }
 
