@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:http/http.dart' hide Request, Response;
+import 'package:http/http.dart' hide Request, Response, get;
 import 'package:networking/networking.dart';
 import 'package:web3_storage/web3_storage.dart';
 
@@ -34,6 +34,17 @@ class Web3StorageNetworkingClient extends NetworkingClient {
       headers: {
         _kFileNameHeader: fileName,
       },
+    );
+  }
+
+  Future<Either<RequestError, Response>> download({
+    required final CID cid,
+  }) {
+    return send(
+      request: Request(
+        uri: cid.web,
+        verb: HttpVerb.get,
+      ),
     );
   }
 

@@ -53,4 +53,38 @@ class Web3Storage {
       },
     );
   }
+
+  ///
+  /// Downloads a file from Web3.Storage given the file CID. Currently the file name is assigned to
+  /// the CID, as Web3.Storage does not provide a way to get the file name without having to list all
+  /// the uploaded files.
+  ///
+  Future<Either<RequestError, Web3File>> download({
+    required final CID cid,
+  }) async {
+    final result = await client.download(cid: cid);
+
+    return result.fold(
+      (r) => Left(r),
+      (l) {
+        if (l is! ErrorResponse) {
+          return Right(
+            Web3File(
+              cid: cid,
+              data: l.body,
+              extension: l.contentType.fileExtension,
+              name: cid,
+            ),
+          );
+        } else {
+          return Left(
+            UnknownError(
+              cause: l.toString(),
+              stackTrace: StackTrace.current,
+            ),
+          );
+        }
+      },
+    );
+  }
 }
