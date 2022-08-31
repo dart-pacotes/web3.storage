@@ -53,4 +53,33 @@ class Web3Storage {
       },
     );
   }
+
+  Future<Either<RequestError, Web3File>> download({
+    required final CID cid,
+  }) async {
+    final result = await client.download(cid: cid);
+
+    return result.fold(
+      (r) => Left(r),
+      (l) {
+        if (l is! ErrorResponse) {
+          return Right(
+            Web3File(
+              cid: cid,
+              data: l.body,
+              extension: l.contentType.fileExtension,
+              name: cid,
+            ),
+          );
+        } else {
+          return Left(
+            UnknownError(
+              cause: l.toString(),
+              stackTrace: StackTrace.current,
+            ),
+          );
+        }
+      },
+    );
+  }
 }
