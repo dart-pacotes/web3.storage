@@ -42,6 +42,10 @@ class Web3Storage {
           return Right(
             Web3File.fromReference(cid: cid, reference: file),
           );
+        } else if (l is ErrorResponse) {
+          return Left(
+            Web3StorageHttpError.fromErrorResponse(l),
+          );
         } else {
           return Left(
             UnknownError(
@@ -78,10 +82,7 @@ class Web3Storage {
           );
         } else {
           return Left(
-            UnknownError(
-              cause: l.toString(),
-              stackTrace: StackTrace.current,
-            ),
+            Web3StorageHttpError.fromErrorResponse(l),
           );
         }
       },
