@@ -66,13 +66,28 @@ class Web3Storage {
   }
 
   ///
-  /// Downloads a file from Web3.Storage given the file CID. Currently the file name is assigned to
-  /// the CID, as Web3.Storage does not provide a way to get the file name without having to list all
-  /// the uploaded files.
+  /// Downloads a file from Web3.Storage given the file CID. Currently, only the file
+  /// information endpoint returns the file name, so you have the option to skip the name
+  /// resolve (i.e., for faster downloads, skip name resolve).
   ///
   Future<Either<RequestError, Web3File>> download({
     required final CID cid,
+    bool skipNameResolve = true,
   }) async {
+    Web3FileReference? reference;
+
+    if (!skipNameResolve) {
+      final infoResult = await info(cid: cid);
+
+      if (infoResult.isRight()) {
+        reference = infoResult.toIterable().first;
+      } else {
+        return Left(
+          infoResult.swap().toIterable().first,
+        );
+      }
+    }
+
     final result = await client.download(cid: cid);
 
     return result.fold(
@@ -83,8 +98,8 @@ class Web3Storage {
             Web3File(
               cid: cid,
               data: l.body,
-              extension: l.contentType.fileExtension,
-              name: cid,
+              extension: reference?.extension ?? l.contentType.fileExtension,
+              name: reference?.name ?? cid,
             ),
           );
         } else {
@@ -111,6 +126,34 @@ class Web3Storage {
                 (j) => Web3FileReference.fromJson(j),
               ),
             ],
+          );
+        } else if (l is ErrorResponse) {
+          return Left(
+            Web3StorageHttpError.fromErrorResponse(l),
+          );
+        } else {
+          return Left(
+            UnknownError(
+              cause: l.toString(),
+              stackTrace: StackTrace.current,
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Future<Either<RequestError, Web3FileReference>> info({
+    required final CID cid,
+  }) async {
+    final result = await client.info(cid: cid);
+
+    return result.fold(
+      (r) => Left(r),
+      (l) {
+        if (l is JsonResponse) {
+          return Right(
+            Web3FileReference.fromJson(l.json),
           );
         } else if (l is ErrorResponse) {
           return Left(

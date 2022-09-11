@@ -3,8 +3,13 @@ import 'package:http/http.dart' hide Request, Response, get;
 import 'package:networking/networking.dart';
 import 'package:web3_storage/web3_storage.dart';
 
+const _kNoneCid = 'none';
+
 const _kUploadEndpoint = '/upload';
 const _kListUploadsEndpoint = '/user/uploads';
+
+String _fileInformationEndpoint(final CID cid) =>
+    '$_kListUploadsEndpoint/${cid.isNotEmpty ? cid : _kNoneCid}';
 
 const _kFileNameHeader = 'X-NAME';
 
@@ -55,6 +60,14 @@ class Web3StorageNetworkingClient extends NetworkingClient {
     return get(
       endpoint: _kListUploadsEndpoint,
       queryParameters: filters.toQueryParameters,
+    );
+  }
+
+  Future<Either<RequestError, Response>> info({
+    required final CID cid,
+  }) {
+    return get(
+      endpoint: _fileInformationEndpoint(cid),
     );
   }
 
