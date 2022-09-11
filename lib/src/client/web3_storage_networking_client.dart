@@ -23,7 +23,7 @@ class Web3StorageNetworkingClient extends NetworkingClient {
         );
 
   Future<Either<RequestError, Response>> upload({
-    required final FileReference file,
+    required final RawFile file,
   }) {
     final fileName = file.fileName;
 

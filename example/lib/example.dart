@@ -11,7 +11,7 @@ void main() async {
   final web3Storage = withApiToken(apiToken);
 
   // Create file reference model of what will be uploaded to Web3.storage
-  final file = FileReference(
+  final file = RawFile(
     name: 'hello',
     extension: 'txt',
     data: Uint8List.fromList(
