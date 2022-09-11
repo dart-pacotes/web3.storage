@@ -13,6 +13,8 @@ String _fileInformationEndpoint(final CID cid) =>
 
 const _kFileNameHeader = 'X-NAME';
 
+const _kWeb3StorageApiHost = 'https://api.web3.storage';
+
 ///
 /// A networking client to interact with Web3.Storage HTTP API
 ///
@@ -23,7 +25,7 @@ class Web3StorageNetworkingClient extends NetworkingClient {
     required Client httpClient,
     required this.apiToken,
   }) : super(
-          baseUrl: Uri.parse('https://api.web3.storage'),
+          baseUrl: Uri.parse(_kWeb3StorageApiHost),
           httpClient: httpClient,
         );
 
@@ -79,7 +81,8 @@ class Web3StorageNetworkingClient extends NetworkingClient {
       request: request.copyWith(
         headers: {
           ...request.headers,
-          'Authorization': 'Bearer $apiToken',
+          if (request.uri.toString().startsWith(_kWeb3StorageApiHost))
+            'Authorization': 'Bearer $apiToken',
         },
       ),
     );
