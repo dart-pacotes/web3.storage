@@ -127,4 +127,32 @@ class Web3Storage {
       },
     );
   }
+
+  Future<Either<RequestError, Web3FileReference>> info({
+    required final CID cid,
+  }) async {
+    final result = await client.info(cid: cid);
+
+    return result.fold(
+      (r) => Left(r),
+      (l) {
+        if (l is JsonResponse) {
+          return Right(
+            Web3FileReference.fromJson(l.json),
+          );
+        } else if (l is ErrorResponse) {
+          return Left(
+            Web3StorageHttpError.fromErrorResponse(l),
+          );
+        } else {
+          return Left(
+            UnknownError(
+              cause: l.toString(),
+              stackTrace: StackTrace.current,
+            ),
+          );
+        }
+      },
+    );
+  }
 }
