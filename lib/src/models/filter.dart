@@ -22,8 +22,8 @@ class ListFilter {
 
   Map<String, String> get toQueryParameters {
     return {
-      'sortBy': sortRule.name,
-      'sortOrder': sortOrder.name,
+      'sortBy': sortRule.query,
+      'sortOrder': sortOrder.query,
       'page': page.toString(),
       'size': size.toString(),
       if (before != null) 'before': before!.toIso8601String(),
@@ -33,11 +33,19 @@ class ListFilter {
 }
 
 enum SortRule {
-  name,
-  date,
+  name('Name'),
+  date('Date');
+
+  final String query;
+
+  const SortRule(this.query);
 }
 
 enum SortOrder {
-  asc,
-  desc,
+  asc('Asc'),
+  desc('Desc');
+
+  final String query;
+
+  const SortOrder(this.query);
 }
