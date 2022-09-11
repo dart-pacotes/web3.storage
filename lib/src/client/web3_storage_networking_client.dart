@@ -4,6 +4,7 @@ import 'package:networking/networking.dart';
 import 'package:web3_storage/web3_storage.dart';
 
 const _kUploadEndpoint = '/upload';
+const _kListUploadsEndpoint = '/user/uploads';
 
 const _kFileNameHeader = 'X-NAME';
 
@@ -45,6 +46,15 @@ class Web3StorageNetworkingClient extends NetworkingClient {
         uri: cid.web,
         verb: HttpVerb.get,
       ),
+    );
+  }
+
+  Future<Either<RequestError, Response>> list({
+    required final ListFilter filters,
+  }) {
+    return get(
+      endpoint: _kListUploadsEndpoint,
+      queryParameters: filters.toQueryParameters,
     );
   }
 
