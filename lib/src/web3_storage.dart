@@ -3,6 +3,13 @@ import 'package:http/http.dart';
 import 'package:networking/networking.dart';
 import 'package:web3_storage/web3_storage.dart';
 
+const _kDefaultListFilter = ListFilter(
+  page: 1,
+  size: 10,
+  sortRule: SortRule.date,
+  sortOrder: SortOrder.desc,
+);
+
 ///
 /// Returns an instance of [Web3Storage] using a single Web3.Storage API token.
 ///
@@ -29,7 +36,7 @@ class Web3Storage {
   });
 
   Future<Either<RequestError, Web3File>> upload({
-    required final FileReference file,
+    required final RawFile file,
   }) async {
     final result = await client.upload(file: file);
 
@@ -40,7 +47,7 @@ class Web3Storage {
           final cid = CIDExtension.fromJson(l.json);
 
           return Right(
-            Web3File.fromReference(cid: cid, reference: file),
+            Web3File.fromRawFile(cid: cid, reference: file),
           );
         } else if (l is ErrorResponse) {
           return Left(
@@ -83,6 +90,38 @@ class Web3Storage {
         } else {
           return Left(
             Web3StorageHttpError.fromErrorResponse(l),
+          );
+        }
+      },
+    );
+  }
+
+  Future<Either<RequestError, List<Web3FileReference>>> list({
+    final ListFilter filters = _kDefaultListFilter,
+  }) async {
+    final result = await client.list(filters: filters);
+
+    return result.fold(
+      (r) => Left(r),
+      (l) {
+        if (l is JsonResponse) {
+          return Right(
+            [
+              ...l.asJsonArray.map(
+                (j) => Web3FileReference.fromJson(j),
+              ),
+            ],
+          );
+        } else if (l is ErrorResponse) {
+          return Left(
+            Web3StorageHttpError.fromErrorResponse(l),
+          );
+        } else {
+          return Left(
+            UnknownError(
+              cause: l.toString(),
+              stackTrace: StackTrace.current,
+            ),
           );
         }
       },
