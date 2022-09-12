@@ -1,4 +1,12 @@
+import 'package:example_web/bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:web3_storage/web3_storage.dart';
+
+const _kImageFileExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+// Yes, this is an API token of a dummy account. Be responsible of what you do :)
+const _kTextApiToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDYwN0Y3ZTU2MmNBQzE5NjIxNDEyMjExYjgzRjFjMGNCNzMxMzFFNDEiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2NjMwMjIxMzU0OTAsIm5hbWUiOiJ3ZWIzc3RvcmFnZS5kYXJ0IHB1YmxpYyBleGFtcGxlIn0.jIJKm8AfeFowFUBsKL1mMtUadGGu5IB1djTg-iHL7L0';
 
 void main() {
   runApp(const MyApp());
@@ -11,35 +19,34 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Web3.Storage Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => Web3StorageBloc(
+              web3storage: withApiToken(_kTextApiToken),
+            )..add(ListUserUploadsEvent()),
+          ),
+          BlocProvider(
+            create: (context) => DeviceBloc(),
+          ),
+        ],
+        child: const MyHomePage(
+          title: 'Web3.Storage Demo',
+        ),
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  const MyHomePage({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
 
   final String title;
 
@@ -48,68 +55,167 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  @override
+  Widget build(BuildContext context) {
+    final deviceBloc = context.read<DeviceBloc>();
+    final web3StorageBloc = context.read<Web3StorageBloc>();
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: BlocListener<DeviceBloc, DeviceState>(
+        listener: (context, state) {
+          if (state is PickFileSuccess) {
+            web3StorageBloc.add(
+              UploadFileEvent(
+                file: state.file,
+              ),
+            );
+          }
+        },
+        child: BlocConsumer<Web3StorageBloc, Web3StorageState>(
+          listener: (context, state) {
+            if (state is Web3StorageCallFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error.toString())),
+              );
+            } else if (state is DownloadFileSuccess) {
+              deviceBloc.add(
+                SaveFileEvent(
+                  file: state.file,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Stack(
+              children: [
+                ListView.builder(
+                  itemBuilder: (context, index) {
+                    return Web3FileListTile(
+                      file: state.uploadedFiles[index],
+                    );
+                  },
+                  itemCount: state.uploadedFiles.length,
+                ),
+                if (state is ListUserUploadsInProgress ||
+                    state is UploadFileInProgress)
+                  const Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              _showSetApiTokenDialog(context);
+            },
+            tooltip: 'Set API Token',
+            child: const Icon(Icons.token),
+          ),
+          const SizedBox(
+            width: 16.0,
+          ),
+          FloatingActionButton(
+            onPressed: () {
+              deviceBloc.add(
+                PickFileEvent(),
+              );
+            },
+            tooltip: 'Upload File',
+            child: const Icon(Icons.upload_file),
+          ),
+        ],
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
   }
+
+  Future<void> _showSetApiTokenDialog(final BuildContext context) {
+    final apiTokenEditingController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('API Token'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: apiTokenEditingController,
+              ),
+              const SizedBox(
+                height: 16.0,
+              ),
+              const SelectableText(
+                'You can grab an API Token here: https://web3.storage/tokens/',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+
+                final web3StorageBloc = context.read<Web3StorageBloc>();
+
+                web3StorageBloc.add(
+                  UpdateApiTokenEvent(
+                    apiToken: apiTokenEditingController.text,
+                  ),
+                );
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class Web3FileListTile extends StatelessWidget {
+  final Web3FileReference file;
+
+  const Web3FileListTile({
+    Key? key,
+    required this.file,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    late IconData extensionIcon;
+
+    if (_kImageFileExtensions.contains(file.extension)) {
+      extensionIcon = Icons.image;
+    } else {
+      extensionIcon = Icons.raw_on;
+    }
+
+    return ListTile(
+      leading: Icon(extensionIcon),
+      title: Text(
+        '${file.fileName} (${file.size} bytes)',
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+      subtitle: SelectableText(file.cid),
+      trailing: TextButton(
+        child: const Text(
+          'Download',
         ),
+        onPressed: () {
+          final web3StorageBloc = context.read<Web3StorageBloc>();
+
+          web3StorageBloc.add(
+            DownloadFileEvent(cid: file.cid),
+          );
+        },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
