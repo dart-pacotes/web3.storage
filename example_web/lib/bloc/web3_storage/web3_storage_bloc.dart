@@ -81,6 +81,7 @@ class Web3StorageBloc extends Bloc<Web3StorageEvent, Web3StorageState> {
 
         final result = await web3storage.download(
           cid: event.cid,
+          skipNameResolve: false,
         );
 
         emit(

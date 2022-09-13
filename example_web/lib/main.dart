@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Web3.Storage Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.lightGreen,
       ),
       home: MultiBlocProvider(
         providers: [
@@ -191,11 +191,14 @@ class Web3FileListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late IconData extensionIcon;
+    late bool isImageFile;
 
     if (_kImageFileExtensions.contains(file.extension)) {
       extensionIcon = Icons.image;
+      isImageFile = true;
     } else {
       extensionIcon = Icons.raw_on;
+      isImageFile = false;
     }
 
     return ListTile(
@@ -204,18 +207,49 @@ class Web3FileListTile extends StatelessWidget {
         '${file.fileName} (${file.size} bytes)',
       ),
       subtitle: SelectableText(file.cid),
-      trailing: TextButton(
-        child: const Text(
-          'Download',
-        ),
-        onPressed: () {
-          final web3StorageBloc = context.read<Web3StorageBloc>();
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isImageFile)
+            TextButton(
+              child: const Text(
+                'Preview',
+              ),
+              onPressed: () {
+                _showImagePreviewDialog(context, file);
+              },
+            ),
+          TextButton(
+            child: const Text(
+              'Download',
+            ),
+            onPressed: () {
+              final web3StorageBloc = context.read<Web3StorageBloc>();
 
-          web3StorageBloc.add(
-            DownloadFileEvent(cid: file.cid),
-          );
-        },
+              web3StorageBloc.add(
+                DownloadFileEvent(cid: file.cid),
+              );
+            },
+          ),
+        ],
       ),
+    );
+  }
+
+  Future<void> _showImagePreviewDialog(
+    final BuildContext context,
+    final Web3FileReference file,
+  ) {
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(file.fileName),
+          content: Image.network(
+            file.cid.web.toString(),
+          ),
+        );
+      },
     );
   }
 }

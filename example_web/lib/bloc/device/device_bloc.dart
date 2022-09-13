@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'dart:html';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web3_storage/web3_storage.dart';
@@ -46,17 +50,22 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
           SaveFileInProgress(),
         );
 
-        final result = await FilePicker.platform.saveFile(
-          fileName: event.file.fileName,
-        );
+        try {
+          final content = base64Encode(event.file.data);
 
-        if (result == null || result.isEmpty) {
-          emit(
-            SaveFileFailure(),
+          final anchor = AnchorElement(
+            href: "data:application/octet-stream;charset=utf-8;base64,$content",
           );
-        } else {
+
+          anchor.setAttribute("download", event.file.fileName);
+          anchor.click();
+
           emit(
             SaveFileSuccess(),
+          );
+        } on Object {
+          emit(
+            SaveFileFailure(),
           );
         }
       },
