@@ -1,6 +1,6 @@
 name: web3_storage
 description: Port of web3.storage SDK in Dart
-version: 0.0.0
+version: 0.0.1
 homepage: https://github.com/dart-pacotes/web3.storage
 repository: https://github.com/dart-pacotes/web3.storage
 
